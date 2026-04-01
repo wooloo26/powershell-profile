@@ -1,28 +1,29 @@
 function proxy {
-    $proxyAddr = "127.0.0.1:10808"
-    $socksAddr = "socks5://$proxyAddr"
+    $httpAddr = "127.0.0.1:7890"
+    $socksAddr = "socks5://127.0.0.1:7891"
+    $httpProxy = "http://$httpAddr"
     
-    Write-Host "Enabling V2Ray proxy..." -ForegroundColor Green
+    Write-Host "Enabling Clash proxy..." -ForegroundColor Green
 
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" `
         -Name ProxyEnable -Value 1
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" `
-        -Name ProxyServer -Value "socks5=$proxyAddr" 
+        -Name ProxyServer -Value $httpAddr
 
-    $env:HTTP_PROXY = $socksAddr
-    $env:HTTPS_PROXY = $socksAddr
+    $env:HTTP_PROXY = $httpProxy
+    $env:HTTPS_PROXY = $httpProxy
     $env:SOCKS_PROXY = $socksAddr
     $env:ALL_PROXY = $socksAddr
 
-    [Environment]::SetEnvironmentVariable("HTTP_PROXY", $socksAddr, "User")
-    [Environment]::SetEnvironmentVariable("HTTPS_PROXY", $socksAddr, "User")
+    [Environment]::SetEnvironmentVariable("HTTP_PROXY", $httpProxy, "User")
+    [Environment]::SetEnvironmentVariable("HTTPS_PROXY", $httpProxy, "User")
 
     if (Get-Command git -ErrorAction SilentlyContinue) {
-        git config --global http.proxy $socksAddr
-        git config --global https.proxy $socksAddr
+        git config --global http.proxy $httpProxy
+        git config --global https.proxy $httpProxy
     }
 
-    Write-Host "✓ Proxy enabled: $proxyAddr" -ForegroundColor Cyan
+    Write-Host "✓ Proxy enabled: HTTP=$httpAddr, SOCKS5=7891" -ForegroundColor Cyan
 }
 
 function noproxy {
@@ -50,5 +51,5 @@ function noproxy {
 }
 
 Write-Host "Usage:" -ForegroundColor Magenta
-Write-Host "   proxy      - Enable V2Ray proxy" -ForegroundColor White
+Write-Host "   proxy      - Enable Clash proxy" -ForegroundColor White
 Write-Host "   noproxy    - Disable proxy" -ForegroundColor White
